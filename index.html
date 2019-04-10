@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./layui/css/layui.css" />
+    <script src="./formula.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <div>
+        <ul class="layui-nav layui-bg-green">
+            <li class="layui-nav-item">
+                <h1 style="font-size: 35px; margin-left: 40px">Math Helper</h1>
+            </li>
+            <!-- <li class="layui-nav-item">
+                <a href="">控制台<span class="layui-badge">9</span></a>
+            </li>
+            <li class="layui-nav-item">
+                <a href="">个人中心<span class="layui-badge-dot"></span></a>
+            </li>
+            <li class="layui-nav-item">
+                <a href=""><img src="./image/00.jpg" border=0 width="40px" height="40px">我</a>
+            </li> -->
+        </ul>
+    </div>
+    <div class="layui-container">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+            <legend>四则运算</legend>
+        </fieldset>
+        <div class="layui-row">
+            <div class="layui-btn-group layui-col-md9">
+                <button id="test" class="layui-btn layui-btn-sm">测试</button>
+                <button id="delay" class="layui-btn layui-btn-sm">开始</button>
+                <button id="keep" class="layui-btn layui-btn-sm">保存</button>
+                <button id="submit" class="layui-btn layui-btn-sm">提交</button>
+            </div>
+            <div id="deadline" class="layui-col-md3" style="text-align: right; font-size: 22px; color:green; ">01 : 00
+                : 00</div>
+        </div>
+
+        <table id='mytable' class="layui-hide" lay-filter="mytable"></table>
+    </div>
+
+    <script src="./layui/layui.js"></script>
+    <script type="text/html" id="helper">
+      <a lay-event="detail"><i class="layui-icon" style="font-size: 20px; color: green;" >&#xe607;</i> </a>
+    </script>
+    <script type="text/html" id="ans">
+      {{# if(d.ans && d.ans == d.res){ }}
+        <span style="color:green">{{ d.ans }}</span>
+      {{# }else if(d.ans){ }}
+        <span style="color:red">{{ d.ans }}</span>
+      {{# }else{ }}
+        <span style="color:red">未作答</span>
+      {{# } }}
+    </script>
+    <script>
+
+        layui.use(['table', 'util'], function () {
+            var table = layui.table,
+                $ = layui.$,
+                util = layui.util,
+                layer = layui.layer;
+
+            var endTime, //假设为结束日期
+                serverTime, //假设为当前服务器时间，这里采用的是本地时间，实际使用一般是取服务端的
+                thisdate = [0, 1, 0, 0],
+                thisTimer;
+
+            var num = 100,
+                right = 0;
+
+            var mytable = table.render({
+                elem: '#mytable'
+                , data: alu(num)
+                , page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
+                    layout: ['limit', 'count', 'prev', 'page', 'next', 'skip'] //自定义分页布局
+                    //,curr: 5 //设定初始在第 5 页
+                    , groups: 2 //只显示 1 个连续页码
+                    , first: "首页" //不显示首页
+                    , last: "尾页" //不显示尾页
+
+                }
+                , skin: 'row'
+                , even: true
+                , cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                , cols: [[
+                    { field: 'id', title: '题号', sort: true }
+                    , { field: 'title', title: '题目' }
+                    , { field: 'ans', title: '答案', edit: 'text' }
+                    , { field: 'diff', title: '难度', sort: true }
+                    , { title: '帮助', align: 'center', toolbar: '#helper' }//
+                ]]
+            });
+
+            table.on('edit(mytable)', function (obj) {
+                var value = obj.value //得到修改后的值
+            });
+
+            table.on('tool(mytable)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'detail') {
+                    layer.msg('正确答案：' + data.res.toString());
+                }
+            });
+
+            $('#test').on('click', function () {
+                if ($('#test').html() == "测试") { $('#test').html("练习"); $('a').hide(); }
+                else { $('#test').html("测试"); $('a').show(); }
+            });
+
+            $('#delay').on('click', function () {
+                if ($('#delay').html() == "开始") {
+                    $('#delay').html("暂停");
+                    endTime = new Date().getTime() + (((thisdate[0] * 24 + thisdate[1]) * 60 + thisdate[2]) * 60 + thisdate[3]) * 1000;
+                    serverTime = new Date().getTime();
+                    util.countdown(endTime, serverTime, function (date, serverTime, timer) {
+                        var str = '时间剩余： ' + util.digit(date[1], 2) + ' : ' + util.digit(date[2], 2) + ' : ' + util.digit(date[3], 2);
+                        $('#deadline').html(str);
+                        thisdate = date;
+                        thisTimer = timer;
+                    });
+
+                }
+                else {
+                    if ($('#test').html() == "测试") {
+                        $('#delay').html("开始");
+                        clearTimeout(thisTimer);
+                        var str = '时间剩余： ' + util.digit(thisdate[1], 2) + ' : ' + util.digit(thisdate[2], 2) + ' : ' + util.digit(thisdate[3], 2);
+                        $('#deadline').html(str);
+                    }
+
+                }
+            });
+
+            $('#keep').on('click', function () {
+
+            });
+
+            $('#submit').on('click', function () {
+                var data = mytable.config.data;
+                for (var i = 0; i < num; i++) {
+                    if (data[i].res == data[i].ans) right++;
+                }
+                layer.msg('你做对了' + right + '道题');
+                mytable.config.cols[0][2] = { field: 'ans', title: '你的答案', templet: '#ans' }
+                mytable.config.cols[0][4] = { field: 'res', title: '正确答案', align: 'center', hide: false, key: "0-4", type: "normal", width: 0 };
+                table.reload('mytable');
+            });
+
+        });
+
+
+    </script>
+</body>
+
+</html>
