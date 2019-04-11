@@ -10,15 +10,34 @@ function operate(a, b, op) {
     else return -1;
 }
 
-function alu(num) {
+function alu(num, cnt) {
     var opr = ['+', '-', '&times;', '&divide;'];
     var star = '<i class="layui-icon">&#xe67a;</i>';
     var obj = [];
     for (var i = 0; i < num;) {
         var op = [];
         var a = [];
-        for (var j = 0; j < 2; j++) op.push(randomInt(0, 3));
-        for (var j = 0; j < 3; j++) a.push(randomInt(0, 100));
+        for (var j = 0; j < 2; j++) {
+            var tmp = Math.random();
+            if(tmp > cnt/num){
+                op.push(randomInt(0, 1));
+            }
+            else{
+                op.push(randomInt(2, 3));
+            }
+            
+        }
+        for (var j = 0; j < 3; j++){
+            var tmp = Math.random();
+            if(tmp < 0.0005){
+                a.push(0);
+            }
+            else{
+                a.push(randomInt(1, 100));
+            }
+            
+        }
+        
         var flag = randomInt(0, 1);
         if (flag)//abc*-
         {
